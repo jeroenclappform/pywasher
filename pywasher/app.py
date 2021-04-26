@@ -95,7 +95,7 @@ class App:
         return data
 
     @property
-    def explore_columnnames(self):
+    def explore_column_names(self):
         df = self.df
         data = df.copy()
         wrong = []
@@ -280,7 +280,7 @@ class App:
                 return df
         return data
 
-    def replace_double_columnnames(self):
+    def replace_double_column_names(self):
         df = self.df.copy()
         dup_columns = df.columns[df.columns.duplicated()]
         df_columns = df.columns

@@ -15,13 +15,7 @@ Now the interface is accessible in your code by prefixing with 'pw'.
 # Exposed Classes
 In this section all the available functions of the module will be described.
 
-## App
-### list_splitter
-The list_splitter function returns a dataframe in which all the values of the chosen columns are given a column. These columns consist of True or False based on the values in the chosen columns. 
-The input is an list with all the names of the columns which need to be split, the output is a modified dataframe
-```python
-df.pw.list_splitter([columns])
-```
+## Column based
 
 ### explore_datatypes
 The explore_datatypes function returns the index, datatype, columnname and datatype given by pandas for each column in the dataframe. 
@@ -53,4 +47,12 @@ df.pw.explore_columnnames
 The explore_columnnames function adds numbers to the columnnames of columnnames which are multiple times in the dataframe
 ```python
 df.pw.replace_double_columnnames
+```
+
+## Cell based
+### list_splitter
+The list_splitter function returns a dataframe in which all the values of the chosen columns are given a column. These columns consist of True or False based on the values in the chosen columns. 
+The input is an list with all the names of the columns which need to be split, the output is a modified dataframe
+```python
+df.pw.list_splitter([columns])
 ```
