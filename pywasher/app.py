@@ -99,6 +99,7 @@ class App:
         df = self.df
         data = df.copy()
         wrong = []
+        tomuch = {}
 
         double_columns = data.columns[data.columns.duplicated()]
         try:
@@ -137,34 +138,31 @@ class App:
                         i = i[:-1]
                     data.rename(columns={original: i}, inplace=True)
             except IndexError as error:
-                loc = data.columns.get_loc(original)
-                wrong.append(l[loc])
+                wrong.append(original)
 
-            dup_columns = data.columns[data.columns.duplicated()]
-        try:
-            for i in dup_columns:
-                pass
-            if not dup_columns.any():
-                pass
-            else:
-                raise TypeError
-        except TypeError as error:
-            dup_columns = list(set(dup_columns))
-
-        if dup_columns:
-            print('There will be multiple column(s): %s \n' % dup_columns)
-
-        if wrong:
-            print('the columnname(s) are invalid: {0} \n'.format(wrong))
+        dup_columns = data.columns[data.columns.duplicated()]
 
         for index, (first, second) in enumerate(zip(df.columns, data.columns)):
             if first != second:
                 print(first, 'has been changed to', second)
+            if second in wrong:
+                index = wrong.index(second)
+                wrong[index] = first
+            elif second in dup_columns.values:
+                tomuch.setdefault(second, []).append(first)
+
+        if tomuch:
+            print('')
+            for key, value in tomuch.items():
+                print('The values {1} will be changed to: {0}'.format(key, value))
+
+        if wrong:
+            print('\nThe columnname(s) are invalid: {0}'.format(wrong))
 
     @property
     def explore_datatypes(self):
         df = self.df
-        print(f"{'index' : <5}{'type' : ^10}{'dtype' : ^10}{'column' : <5}")
+        print(f"{'index' : <8}{'type' : <10}{'dtype' : <8}{'nulls' : <6}{'differences': <12}{'column' : <1}")
         for i in df:
             try:
                 a = df[i].unique()
@@ -181,7 +179,12 @@ class App:
                     type = 'datetime'
                 else:
                     type = 'multiple'
-            print(f"{df.columns.get_loc(i) : <5}{type : ^10}{df[i].dtype.name : ^10}{i : <5}")
+            if type == 'list':
+                print(
+                    f"{df.columns.get_loc(i) : <8}{type : <10}{df[i].dtype.name: <8}{df[i].isna().sum(): <6}{'NaN': <12}{i : <1}")
+            else:
+                print(
+                    f"{df.columns.get_loc(i) : <8}{type : <10}{df[i].dtype.name: <8}{df[i].isna().sum(): <6}{df[i].nunique(): <12}{i : <1}")
         pass
 
     def column_merge(self, columns, delete = False):
@@ -193,7 +196,7 @@ class App:
 
         if not isinstance(delete, bool):
             print("delete is supposed to be a boolean")
-            return
+            return df
 
         try:
             if isinstance(columns, list):
@@ -233,12 +236,16 @@ class App:
 
         return data
 
-    def column_to_numeric(self, columns):
+    def column_to_numeric(self, columns, force = False):
         df = self.df
         data = df.copy()
         error_value = []
         double_columns = df.columns[df.columns.duplicated()]
         double = []
+
+        if not isinstance(force, bool):
+            print("delete is supposed to be a boolean")
+            return df
 
         try:
             if isinstance(columns, list):
@@ -258,26 +265,31 @@ class App:
             print('These columns cant be in the dataframe multiple times: {0}'.format(double))
             return df
 
-        for col in columns:
-            try:
-                if all(isinstance(i, str) for i in df[col].unique()):
-                    if all(re.match('([0-9]+(,[0-9]+)?)$', i) for i in df[col].unique()):
-                        data[col] = pd.to_numeric(df[col].str.replace(',', '.'))
+        if force:
+            for col in columns:
+                data[col] = data[col].apply(lambda x: pd.to_numeric(x) if (pd.isna(x) or re.match('([0-9]+(,[0-9]+)?)$', x)) else np.nan)
+        else:
+            for col in columns:
+                try:
+                    if all((isinstance(i, str) or pd.isna(i)) for i in df[col].unique()):
+                        if all(pd.isna(i) or re.match('([0-9]+(,[0-9]+)?)$', i) for i in df[col].unique()):
+                            data[col] = data[col].apply(lambda x: pd.to_numeric(x.replace(',', '.')) if isinstance(x, str) else x)
+                        else:
+                            for i in df[col].unique():
+                                if not (re.match('([0-9]+(,[0-9]+)?)$', i)):
+                                    error_value.append(i)
+                            raise ValueError
                     else:
-                        for i in df[col].unique():
-                            if not (re.match('([0-9]+(,[0-9]+)?)$', i)):
-                                error_value.append(i)
-                        raise ValueError
-                else:
-                    raise TypeError
+                        raise TypeError
 
-            except TypeError:
-                print("the column {0} doesn't contain only strings".format(col))
-                return df
+                except TypeError:
+                    print("the column {0} doesn't contain only strings".format(col))
+                    return df
 
-            except ValueError:
-                print("the column {0} has values which can't be converted to numbers: {1}".format(col, error_value))
-                return df
+                except ValueError:
+                    print("the column {0} has values which can't be converted to numbers: {1}".format(col, error_value))
+                    return df
+
         return data
 
     def replace_double_column_names(self):
