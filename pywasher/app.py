@@ -177,6 +177,8 @@ class App:
                     type = 'string'
                 elif all(isinstance(element, (pd.Timestamp, np.datetime64)) for element in a):
                     type = 'datetime'
+                elif df[i].isna().sum() == df[i].shape[0]:
+                    type = 'empty'
                 else:
                     type = 'multiple'
             if type == 'list':
