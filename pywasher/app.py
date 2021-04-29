@@ -162,7 +162,7 @@ class App:
     @property
     def explore_datatypes(self):
         df = self.df
-        print(f"{'index' : <5}{'type' : ^10}{'dtype' : ^10}{'column' : <5}")
+        print(f"{'index' : <5}{'type' : ^10}{'dtype' : ^10}{'nulls' : ^5}{'different values': ^20}{'column' : <10}")
         for i in df:
             try:
                 a = df[i].unique()
@@ -179,7 +179,7 @@ class App:
                     type = 'datetime'
                 else:
                     type = 'multiple'
-            print(f"{df.columns.get_loc(i) : <5}{type : ^10}{df[i].dtype.name : ^10}{i : <5}")
+            print(f"{df.columns.get_loc(i) : <5}{type : ^10}{df[i].dtype.name : ^10}{df[i].isna().sum(): ^5}{df[i].count(): ^20}{i : <10}")
         pass
 
     def column_merge(self, columns, delete = False):
