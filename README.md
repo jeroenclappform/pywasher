@@ -37,13 +37,13 @@ It returns an dataframe in which the values of the given columns are made into n
 df.pw.column_to_numeric([columns], force = False)
 ```
 
-### explore_columnnames
+### explore_column_names
 The explore_columnnames functions shows how the column names will be changed if they will be send towards the Clappform database
 ```python
 df.pw.explore_columnnames
 ```
 
-### replace_double_columnnames
+### replace_double_column_names
 The explore_columnnames function adds numbers to the columnnames of columnnames which are multiple times in the dataframe
 ```python
 df.pw.replace_double_columnnames
