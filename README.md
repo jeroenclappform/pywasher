@@ -37,10 +37,10 @@ df.pw.column_merge([columns], delete = False)
 ```
 
 ### column_to_numeric
-The numbering checks if all the values in the given columns can be converted to an float or integer. If this is possible it will convert every value in the column to an int or float
+The numbering checks if all the values in the given columns can be converted to an float or integer. If this is possible it will convert every value in the column to an int or float. If the force value is True it will change every cell it cant convert to numbers to NA
 It returns an dataframe in which the values of the given columns are made into numbers.
 ```python
-df.pw.column_to_numeric([columns])
+df.pw.column_to_numeric([columns], force = False)
 ```
 
 ### explore_columnnames
