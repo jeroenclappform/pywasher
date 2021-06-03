@@ -2,3 +2,4 @@ pywasher.egg-info
 dist
 pywasher/__pycache__/
 .idea/
+log.csv

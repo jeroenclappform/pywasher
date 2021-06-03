@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import re
+import time
+from datetime import datetime
 
 @pd.api.extensions.register_dataframe_accessor("pw")
 
@@ -9,7 +11,7 @@ class App:
     def __init__(self, df):
         self.df = df
 
-    def list_splitter(self, columns):
+    def list_splitter(self, columns, delete = False):
         df = self.df
         data = df.copy()
         new_col = []
@@ -17,6 +19,10 @@ class App:
         temp_dict = {}
         double_columns = df.columns[df.columns.duplicated()]
         double = []
+
+        if not isinstance(delete, bool):
+            print("delete is supposed to be a boolean")
+            return df
 
         try:
             if isinstance(columns, list):
@@ -58,14 +64,14 @@ class App:
                 while answer not in ("yes", "no", "j", "n", "ja", "y", "ye", "ne", "nee"):
                     answer = input("Do you want to put the data in a different column?: ")
 
-                    if re.match('yes|ja|j|ye|y', answer.lower()):
+                    if answer.lower() in ("yes", "ja", "j", "ye", "y"):
                         colname = ''
                         while colname in new_col or colname == '' or colname in df.columns or colname in temp_dict.values():
                             colname = input("What is the name of the new col?: ")
                         temp_dict[new] = colname
                         data[colname] = False
 
-                    elif re.match('no|n|ne|nee', answer.lower()):
+                    elif answer.lower() in ("no", "n", "ne", "nee"):
                         temp_col.append(new)
 
                     else:
@@ -92,6 +98,9 @@ class App:
                         data[temp_dict[new]].loc[index] = True
                     elif (isinstance(value, int) or isinstance(value, str)) and new == value:
                         data[new].loc[index] = True
+            if delete == True:
+                del data[col]
+
         return data
 
     @property
@@ -144,7 +153,7 @@ class App:
 
         for index, (first, second) in enumerate(zip(df.columns, data.columns)):
             if first != second:
-                print(first, 'has been changed to', second)
+                print(first, '--->', second)
             if second in wrong:
                 index = wrong.index(second)
                 wrong[index] = first
@@ -162,14 +171,16 @@ class App:
     @property
     def explore_datatypes(self):
         df = self.df
-        print(f"{'index' : <8}{'type' : <10}{'dtype' : <8}{'nulls' : <6}{'differences': <12}{'column' : <1}")
+        print(f"{'index' : <8}{'type' : <10}{'dtype' : <8}{'nulls' : <6}{'nunique': <12}{'column' : <1}")
         for i in df:
             try:
-                a = df[i].unique()
+                a = df[i].dropna().unique()
             except:
                 type = 'list'
             else:
-                if all(isinstance(element, (bool, np.bool_)) for element in a):
+                if df[i].isna().sum() == df[i].shape[0]:
+                    type = 'empty'
+                elif all(isinstance(element, (bool, np.bool_)) for element in a):
                     type = 'boolean'
                 elif all(isinstance(element, (np.int64, np.float64, int, float)) for element in a):
                     type = 'number'
@@ -177,8 +188,6 @@ class App:
                     type = 'string'
                 elif all(isinstance(element, (pd.Timestamp, np.datetime64)) for element in a):
                     type = 'datetime'
-                elif df[i].isna().sum() == df[i].shape[0]:
-                    type = 'empty'
                 else:
                     type = 'multiple'
             if type == 'list':
@@ -285,11 +294,11 @@ class App:
                         raise TypeError
 
                 except TypeError:
-                    print("the column {0} doesn't contain only strings".format(col))
+                    print("The column {0} doesn't contain only strings".format(col))
                     return df
 
                 except ValueError:
-                    print("the column {0} has values which can't be converted to numbers: {1}".format(col, error_value))
+                    print("The column {0} has values which can't be converted to numbers: {1}".format(col, error_value))
                     return df
 
         return data
@@ -314,7 +323,14 @@ class App:
             for c in range(c):
                 dict['%s_%s' % (i, c + 1)] = i
 
-        for k, v in dict.items():
-            df[v] = np.where(df[v].isnull(), df[k], df[v])
-
         return df
+
+    def sorting(self):
+        df = self.df
+        data = df.copy()
+
+        data = data.reindex(sorted(data.columns), axis=1)
+
+        return data
+
+    
