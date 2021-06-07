@@ -21,8 +21,8 @@ class App:
         double = []
 
         if not isinstance(delete, bool):
-            print("delete is supposed to be a boolean")
-            return df
+            print("\033[1;31m" + "delete is supposed to be a boolean")
+            return
 
         try:
             if isinstance(columns, list):
@@ -30,15 +30,15 @@ class App:
             else:
                 raise TypeError
         except TypeError:
-            print('A list was expected')
-            return df
+            print("\033[1;31m" + 'A list was expected')
+            return
 
         try:
             if 'True' in df.columns or 'False' in df.columns:
                 raise NameError
         except NameError:
-            print('True and False cant be column names')
-            return df
+            print("\033[1;31m" + "True and False can't be column names")
+            return
 
         [double.append(x) for x in columns if (x in double_columns.unique().values) and (x not in double)]
         try:
@@ -46,7 +46,7 @@ class App:
                 raise ValueError
         except ValueError:
             print('These columns cant be in the dataframe multiple times: {0}'.format(double))
-            return df
+            return
 
         for col in columns:
             if isinstance(col, str):
@@ -171,7 +171,7 @@ class App:
     @property
     def explore_datatypes(self):
         df = self.df
-        print(f"{'index' : <8}{'type' : <10}{'dtype' : <8}{'nulls' : <6}{'nunique': <12}{'column' : <1}")
+        print(f"{'index' : <8}{'type' : <10}{'dtype' : <8}{'nulls' : <6}{'nunique': <10}{'column' : <1}")
         for i in df:
             try:
                 a = df[i].dropna().unique()
@@ -190,12 +190,46 @@ class App:
                     type = 'datetime'
                 else:
                     type = 'multiple'
-            if type == 'list':
-                print(
-                    f"{df.columns.get_loc(i) : <8}{type : <10}{df[i].dtype.name: <8}{df[i].isna().sum(): <6}{'NaN': <12}{i : <1}")
-            else:
-                print(
-                    f"{df.columns.get_loc(i) : <8}{type : <10}{df[i].dtype.name: <8}{df[i].isna().sum(): <6}{df[i].nunique(): <12}{i : <1}")
+
+                # prints index of the column
+                def index():
+                    return "\033[0;30m" + f"{df.columns.get_loc(i) : <7}"
+
+                # prints the type of all the values
+                def etype():
+                    if type == 'empty':
+                        return "\033[0;31m" + f"{type : <9}"
+                    else:
+                        return "\033[0;30m" + f"{type : <9}"
+
+                # prints the dtypes
+                def dtype():
+                    return "\033[0;30m" + f"{df[i].dtype.name: <7}"
+
+                # prints the number of nulls
+                def nulls():
+                    if type == 'empty':
+                        return "\033[0;31m" + f"{df[i].isna().sum(): <5}"
+                    else:
+                        return "\033[0;30m" + f"{df[i].isna().sum(): <5}"
+
+                # prints the number of unique values
+                def nunique():
+                    if type == 'list':
+                        return "\033[0;30m" + f"{'NaN': <9}"
+                    else:
+                        if type == 'empty':
+                            return "\033[0;31m" + f"{df[i].nunique() : <9}"
+                        elif df[i].nunique() == 1:
+                            return "\033[0;31m" + f"{df[i].nunique(): <9}"
+                        return "\033[0;30m" + f"{df[i].nunique(): <9}"
+
+                # prints the column name
+                def column():
+                    return "\033[0;30m" + f"{i : <6}"
+
+            print(index(),etype(),dtype(),nulls(),nunique(),column())
+
         pass
 
     def column_merge(self, columns, delete = False):
@@ -206,8 +240,8 @@ class App:
         double = []
 
         if not isinstance(delete, bool):
-            print("delete is supposed to be a boolean")
-            return df
+            print("\033[0;31m" + "delete is supposed to be a boolean")
+            return
 
         try:
             if isinstance(columns, list):
@@ -215,15 +249,15 @@ class App:
             else:
                 raise TypeError
         except TypeError:
-            print('A list was expected')
-            return df
+            print("\033[0;31m" + 'A list was expected')
+            return
 
         try:
             if len(columns) <= 1:
                 raise IndexError
         except IndexError:
-            print('The list must have multiple values')
-            return df
+            print("\033[0;31m" + 'The list must have multiple values')
+            return
 
         [double.append(x) for x in columns if (x in double_columns.unique().values) and (x not in double)]
 
@@ -232,7 +266,7 @@ class App:
                 raise ValueError
         except ValueError:
             print('These columns cant be in the dataframe multiple times: {0}'.format(double))
-            return df
+            return
 
         for c in columns:
             if c == columns[0]:
@@ -255,8 +289,8 @@ class App:
         double = []
 
         if not isinstance(force, bool):
-            print("delete is supposed to be a boolean")
-            return df
+            print("\033[0;31m" + "delete is supposed to be a boolean")
+            return
 
         try:
             if isinstance(columns, list):
@@ -264,8 +298,8 @@ class App:
             else:
                 raise TypeError
         except TypeError:
-            print('A list was expected')
-            return df
+            print("\033[0;31m" + 'A list was expected')
+            return
 
         [double.append(x) for x in columns if (x in double_columns.unique().values) and (x not in double)]
 
@@ -294,12 +328,12 @@ class App:
                         raise TypeError
 
                 except TypeError:
-                    print("The column {0} doesn't contain only strings".format(col))
-                    return df
+                    print("\033[0;31m" + "The column {0} doesn't contain only strings".format(col))
+                    return
 
                 except ValueError:
-                    print("The column {0} has values which can't be converted to numbers: {1}".format(col, error_value))
-                    return df
+                    print("\033[0;31m" + "The column {0} has values which can't be converted to numbers: {1}".format(col, error_value))
+                    return
 
         return data
 
@@ -333,4 +367,149 @@ class App:
 
         return data
 
-    
+    def cleaning(self):
+        df = self.df
+        data = df.copy()
+        tomuch = {}
+
+        # Makes all the columns lowercase
+        data = data.rename(columns=str.lower)
+
+        try:
+            data = data.applymap(lambda x: pd.to_numeric(x, errors='ignore'))
+        except:
+            pass
+
+        # removes all dubble spaces in column name
+        data.columns = data.columns.str.replace('\s+s+', ' ', regex=True)
+        # Replaces all spaces with underscores
+        data.columns = data.columns.str.replace(' ', '_')
+        # Replaces all 'streepjes' with underscores
+        data.columns = data.columns.str.replace('-', '_')
+        # Removes all spaces at the start and end
+        data.columns = data.columns.str.strip()
+
+        exceptions = {'ü': 'u', 'ä': 'a', 'ö': 'o', 'ë': 'e', 'ï': 'i', '%': '_procent_', '&': '_and_', ' ': '_', '-': '_'}
+
+        for v, k in exceptions.items():
+            data.columns = data.columns.str.replace(v, k)
+
+        data.columns = data.columns.str.replace('__', '_')
+
+        # removes all the values that Javascript doesnt allow
+        data.columns = data.columns.str.replace('[^0-9_$a-z]', '', regex=True)
+
+        # trimms all values
+        data = data.applymap(lambda x: x.strip() if type(x) == str else x)
+        data = data.applymap(lambda x: ' '.join(x.split()) if type(x) == str else x)
+
+        for i in data:
+            l = i
+            try:
+                while re.match('[^_$a-z]', i[0]):
+                    i = i[1:]
+                data.rename(columns={l: i}, inplace=True)
+
+            except IndexError as error:
+                print('the column {0} contains no letter, underscore or dollar sign, do you want to change it?'.format(l))
+                answer = None
+                while answer not in ("yes", "no", "j", "n", "ja", "y", "ye", "ne", "nee"):
+                    answer = input("Do you want to put the data in a different column?: ")
+                    if answer.lower() in ("yes", "ja", "j", "ye", "y"):
+                        colname = ''
+                        while colname == '' or re.match('[^_$a-z]', colname[0]) or colname in data.columns:
+                            colname = input("What is the name of the new col?: ")
+                        data.rename(columns={l: colname}, inplace=True)
+
+                    elif answer.lower() in ("no", "n", "ne", "nee"):
+                        print('The function has been ended early'.format(l))
+                        return data
+
+        dup_columns = data.columns[data.columns.duplicated()]
+
+        for index, (first, second) in enumerate(zip(df.columns, data.columns)):
+            if second in dup_columns.values:
+                tomuch.setdefault(second, []).append(first)
+        # print(tomuch)
+
+        if tomuch:
+            dup_columns = list(set(dup_columns))
+            print('There are multiple column(s) %s' % dup_columns)
+            return data
+
+        monthname = 'january|february|march|april|may|june|july|august|september|october|november|december'
+        shortmonts = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|march|april|june|july'
+
+        day = r'((3[01]){1}|([12][0-9]){1}|(0?[1-9]){1}){1}'
+        month = r'((1[0-2]){1}|(0?[1-9]){1}){1}'
+        year = r'([12]{1}[0-9]{3}){1}'
+        hms = r'(([2][0-3]){1}|([0-1][0-9]){1}){1}(:[0-5]{1}[0-9]{1}){2}'
+
+        date_dict = {
+            r'\b(' + year + '-{1}' + month + '-{1}' + day + ' ' + hms + r')\b': '%Y-%m-%d %H:%M:%S',
+            r'\b(' + year + '-{1}' + day + '-{1}' + month + ' ' + hms + r')\b': '%Y-%d-%m %H:%M:%S',
+            r'\b(' + day + '-{1}' + month + '-{1}' + year + ' ' + hms + r')\b': '%d-%m-%Y %H:%M:%S',
+            r'\b(' + month + '-{1}' + day + '-{1}' + year + ' ' + hms + r')\b': '%m-%d-%Y %H:%M:%S',
+            r'\b(' + day + '/{1}' + month + '/{1}' + year + r')\b': '%d/%m/%Y',
+            r'\b(' + month + '/{1}' + day + '/{1}' + year + r')\b': '%m/%d/%Y',
+            r'\b(' + year + '/{1}' + month + '/{1}' + day + r')\b': '%Y/%m/%d',
+            '((3[01]|[12][0-9]|0?[1-9])-(1[0-2]|0?[1-9])-([12][0-9]{3}))': '%d-%m-%Y',
+            '((1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])-([12][0-9]{3}))': '%m-%d-%Y',
+            '(([12][0-9]{3})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0[1-9]))': '%Y-%m-%d',
+            '(' + monthname + ' (3[01]|[12][0-9]|[1-9]), ([12][0-9]{3}))': '%B %d, %Y',
+            '(([12][0-9]{3}), (3[01]|[12][0-9]|[1-9]) ' + monthname + ')': '%Y, %d %B',
+            '([12][0-9]{3}, (' + monthname + ') (3[01]|[12][0-9]|[1-9]))': '%Y, %B %d',
+        }
+
+        strings = []
+        numbers = []
+        dates = []
+        lists = []
+
+        for i in data:
+            try:
+                a = data[i].unique()
+            except:
+                data[i] = data[i].apply(lambda x: [x] if type(x) is not np.ndarray else x)
+                lists.append(i)
+            else:
+                r = r"(" + ")|(".join(date_dict) + ")"
+                if all(isinstance(element, (np.int64, np.float64, int, float)) for element in a):
+                    numbers.append(i)
+                elif all(isinstance(element, str) for element in a):
+                    temp = []
+                    for aa in a:
+                        if re.match(r, aa, flags=re.IGNORECASE):
+                            temp.append(aa)
+                    if len(a) == len(temp):
+                        dates.append(i)
+                    else:
+                        strings.append(i)
+                else:
+                    data[i] = data[i].apply(str)
+                    strings.append(i)
+
+        for i in dates:
+            for k in date_dict.keys():
+                data[i] = data[i].apply(
+                    lambda x: time.mktime(datetime.strptime(x, date_dict[k]).timetuple()) if type(x) == str and (
+                        re.match(k, x, flags=re.IGNORECASE)) else x)
+
+        return data
+        #         answer = None
+        #         while answer not in ("yes", "no", "j", "n", "ja", "y", "ye", "ne", "nee"):
+        #             answer = input("Do you want to put the data in a different column?: ")
+        #
+        #             if re.match('yes|ja|j|ye|y', answer.lower()):
+        #                 colname = ''
+        #                 while colname in new_col or colname == '' or colname in df.columns or colname in temp_dict.values():
+        #                     colname = input("What is the name of the new col?: ")
+        #                 temp_dict[new] = colname
+        #                 data[colname] = False
+        #
+        #             elif re.match('no|n|ne|nee', answer.lower()):
+        #                 temp_col.append(new)
+        #
+        #             else:
+        #                 print("Please enter yes or no.")
+        # return data

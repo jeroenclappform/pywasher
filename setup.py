@@ -6,7 +6,7 @@ def readme():
 
 setup(
     name="pywasher",
-    version="1.0.2",
+    version="1.0.3",
     description="pywasher",
     long_description=readme(),
     long_description_content_type="text/markdown",
