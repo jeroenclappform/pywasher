@@ -54,3 +54,21 @@ The explore_columnnames function adds numbers to the columnnames of columnnames 
 ```python
 df.pw.replace_double_columnnames
 ```
+
+### sorting
+The sorting function changes the order of the columns to an alphabetic order
+```python
+df.pw.sorting()
+```
+
+### explore_double
+The explore_double function shows all the double columns in a dataframe
+```python
+df.pw.explore_double()
+```
+
+### cleaning
+The cleaning functions cleans the dataframe. It removes double spaces, replaces spaces with underscores in the columns and makes sure the column names are valid variable names for Javascript
+```python
+df.pw.cleaning()
+```

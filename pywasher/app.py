@@ -367,6 +367,36 @@ class App:
 
         return data
 
+    def explore_double(self):
+        df = self.df.copy()
+        dup_columns = df.columns[df.columns.duplicated()]
+        df_columns = df.columns
+        new_columns = []
+        change_columns = []
+        dict = {}
+
+        for item in df_columns:
+            counter = 0
+            newitem = item
+            while newitem in new_columns:
+                counter += 1
+                newitem = "{}_{}".format(item, counter)
+                if newitem not in change_columns:
+                    if item not in change_columns:
+                        change_columns.append(item)
+                    change_columns.append(newitem)
+            new_columns.append(newitem)
+        df.columns = new_columns
+
+        for i, c in dup_columns.value_counts().iteritems():
+            for c in range(c):
+                dict['%s_%s' % (i, c + 1)] = i
+
+        df = df[change_columns].reindex(sorted(df[change_columns].columns), axis=1)
+
+
+        return df
+
     def cleaning(self):
         df = self.df
         data = df.copy()
@@ -430,7 +460,6 @@ class App:
         for index, (first, second) in enumerate(zip(df.columns, data.columns)):
             if second in dup_columns.values:
                 tomuch.setdefault(second, []).append(first)
-        # print(tomuch)
 
         if tomuch:
             dup_columns = list(set(dup_columns))
