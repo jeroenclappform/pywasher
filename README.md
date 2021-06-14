@@ -38,17 +38,34 @@ df.pw.column_to_numeric([columns], force = False)
 ```
 
 ### explore_column_names
-The explore_columnnames functions shows how the column names will be changed if they will be send towards the Clappform database
+The explore_column_names functions shows how the column names will be changed if they will be send towards the Clappform database
 ```python
 df.pw.explore_columnnames
 ```
 
 ### replace_double_column_names
-The explore_columnnames function adds numbers to the columnnames of columnnames which are multiple times in the dataframe
+The explore_column_names function adds numbers to the columnnames of columnnames which are multiple times in the dataframe
 ```python
-df.pw.replace_double_columnnames
+df.pw.replace_double_column_names
 ```
 
+### sorting
+The sorting function changes the order of the columns to an alphabetic order
+```python
+df.pw.sorting()
+```
+
+### explore_double
+The explore_double function shows all the double columns in a dataframe
+```python
+df.pw.explore_double()
+```
+
+### cleaning
+The cleaning functions cleans the dataframe. It removes double spaces, replaces spaces with underscores in the columns and makes sure the column names are valid variable names for Javascript
+```python
+df.pw.cleaning()
+=======
 ## Cell based
 ### list_splitter
 The list_splitter function returns a dataframe in which all the values of the chosen columns are given a column. These columns consist of True or False based on the values in the chosen columns. 
