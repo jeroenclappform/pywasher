@@ -65,7 +65,8 @@ df.pw.explore_double()
 The cleaning functions cleans the dataframe. It removes double spaces, replaces spaces with underscores in the columns and makes sure the column names are valid variable names for Javascript
 ```python
 df.pw.cleaning()
-=======
+```
+
 ## Cell based
 ### list_splitter
 The list_splitter function returns a dataframe in which all the values of the chosen columns are given a column. These columns consist of True or False based on the values in the chosen columns. 

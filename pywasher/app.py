@@ -3,6 +3,7 @@ import numpy as np
 import re
 import time
 from datetime import datetime
+from IPython.display import display
 
 @pd.api.extensions.register_dataframe_accessor("pw")
 
@@ -289,7 +290,7 @@ class App:
         double = []
 
         if not isinstance(force, bool):
-            print("\033[0;31m" + "delete is supposed to be a boolean")
+            print("\033[0;31m" + "force is supposed to be a boolean")
             return
 
         try:
@@ -310,30 +311,31 @@ class App:
             print('These columns cant be in the dataframe multiple times: {0}'.format(double))
             return df
 
-        if force:
-            for col in columns:
-                data[col] = data[col].apply(lambda x: pd.to_numeric(x) if (pd.isna(x) or re.match('([0-9]+(,[0-9]+)?)$', x)) else np.nan)
-        else:
-            for col in columns:
-                try:
-                    if all((isinstance(i, str) or pd.isna(i)) for i in df[col].unique()):
-                        if all(pd.isna(i) or re.match('([0-9]+(,[0-9]+)?)$', i) for i in df[col].unique()):
-                            data[col] = data[col].apply(lambda x: pd.to_numeric(x.replace(',', '.')) if isinstance(x, str) else x)
+        for col in columns:
+            try:
+                if all((isinstance(i, (np.int64, np.float64, int, float, str)) or pd.isna(i)) for i in df[col].unique()):
+                    for i, val in df[col].items():
+                        if isinstance(val, (np.int64, np.float64, int, float)) or pd.isna(val):
+                            pass
+                        elif re.match('([0-9]+(([,.])?[0-9]+)?)$', val):
+                            data[col].iloc[i] = pd.to_numeric(val.replace(',', '.'))
                         else:
-                            for i in df[col].unique():
-                                if not (re.match('([0-9]+(,[0-9]+)?)$', i)):
-                                    error_value.append(i)
+                            if not re.match('([0-9]+(([,.])?[0-9]+)?)$', val) and force == True:
+                                data[col].loc[i] = np.nan
+                            elif not (re.match('([0-9]+(([,.])?[0-9]+)?)$', val)):
+                                error_value.append(val)
+                        if error_value:
                             raise ValueError
-                    else:
-                        raise TypeError
+                else:
+                    raise TypeError
 
-                except TypeError:
-                    print("\033[0;31m" + "The column {0} doesn't contain only strings".format(col))
-                    return
+            except TypeError:
+                print("\033[0;31m" + "The column {0} doesn't contain only strings".format(col))
+                return
 
-                except ValueError:
-                    print("\033[0;31m" + "The column {0} has values which can't be converted to numbers: {1}".format(col, error_value))
-                    return
+            except ValueError:
+                print("\033[0;31m" + "The column {0} has values which can't be converted to numbers: {1}".format(col, error_value))
+                return
 
         return data
 
@@ -375,6 +377,10 @@ class App:
         change_columns = []
         dict = {}
 
+        if not dup_columns.values.any():
+            print("\033[0;31m" + "There are no double column names")
+            return
+
         for item in df_columns:
             counter = 0
             newitem = item
@@ -394,13 +400,21 @@ class App:
 
         df = df[change_columns].reindex(sorted(df[change_columns].columns), axis=1)
 
-
         return df
 
     def cleaning(self):
         df = self.df
         data = df.copy()
-        tomuch = {}
+        double_columns = df.columns[df.columns.duplicated()]
+        double = []
+
+
+        try:
+            if double:
+                raise ValueError
+        except ValueError:
+            print('These columns cant be in the dataframe multiple times: {0}'.format(double))
+            return
 
         # Makes all the columns lowercase
         data = data.rename(columns=str.lower)
@@ -441,30 +455,21 @@ class App:
                 data.rename(columns={l: i}, inplace=True)
 
             except IndexError as error:
-                print('the column {0} contains no letter, underscore or dollar sign, do you want to change it?'.format(l))
-                answer = None
-                while answer not in ("yes", "no", "j", "n", "ja", "y", "ye", "ne", "nee"):
-                    answer = input("Do you want to put the data in a different column?: ")
-                    if answer.lower() in ("yes", "ja", "j", "ye", "y"):
-                        colname = ''
-                        while colname == '' or re.match('[^_$a-z]', colname[0]) or colname in data.columns:
-                            colname = input("What is the name of the new col?: ")
-                        data.rename(columns={l: colname}, inplace=True)
+                print('the column {0} contains no letter, underscore or dollar sign, how should the column be named?'.format(l))
+                colname = ''
+                while colname == '' or re.match('[^_$a-z]', colname[0]) or colname in data.columns:
+                    colname = input('{0} to: '.format(l))
+                data.rename(columns={l: colname}, inplace=True)
 
-                    elif answer.lower() in ("no", "n", "ne", "nee"):
-                        print('The function has been ended early'.format(l))
-                        return data
-
-        dup_columns = data.columns[data.columns.duplicated()]
+        new_columns = []
 
         for index, (first, second) in enumerate(zip(df.columns, data.columns)):
-            if second in dup_columns.values:
-                tomuch.setdefault(second, []).append(first)
 
-        if tomuch:
-            dup_columns = list(set(dup_columns))
-            print('There are multiple column(s) %s' % dup_columns)
-            return data
+            newitem = second
+            while second in new_columns and (newitem == '' or re.match('[^_$a-z]', newitem[0]) or newitem in data.columns):
+                newitem = input("{0} to: ".format(first))
+            new_columns.append(newitem)
+        data.columns = new_columns
 
         monthname = 'january|february|march|april|may|june|july|august|september|october|november|december'
         shortmonts = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|march|april|june|july'
@@ -517,7 +522,7 @@ class App:
                 else:
                     data[i] = data[i].apply(str)
                     strings.append(i)
-
+        #
         for i in dates:
             for k in date_dict.keys():
                 data[i] = data[i].apply(
@@ -525,20 +530,3 @@ class App:
                         re.match(k, x, flags=re.IGNORECASE)) else x)
 
         return data
-        #         answer = None
-        #         while answer not in ("yes", "no", "j", "n", "ja", "y", "ye", "ne", "nee"):
-        #             answer = input("Do you want to put the data in a different column?: ")
-        #
-        #             if re.match('yes|ja|j|ye|y', answer.lower()):
-        #                 colname = ''
-        #                 while colname in new_col or colname == '' or colname in df.columns or colname in temp_dict.values():
-        #                     colname = input("What is the name of the new col?: ")
-        #                 temp_dict[new] = colname
-        #                 data[colname] = False
-        #
-        #             elif re.match('no|n|ne|nee', answer.lower()):
-        #                 temp_col.append(new)
-        #
-        #             else:
-        #                 print("Please enter yes or no.")
-        # return data
