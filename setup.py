@@ -6,7 +6,7 @@ def readme():
 
 setup(
     name="pywasher",
-    version="1.2",
+    version="1.3",
     description="pywasher",
     long_description=readme(),
     long_description_content_type="text/markdown",
@@ -17,7 +17,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     url="https://github.com/jeroenclappform/pywasher",
-    download_url = 'https://github.com/jeroenclappform/pywasher/archive/1.2.tar.gz',
+    download_url = 'https://github.com/jeroenclappform/pywasher/archive/1.3.tar.gz',
     author="StanBekker",
     author_email="s.bekker@clappform.com",
     keywords="dataframe cleaner",
