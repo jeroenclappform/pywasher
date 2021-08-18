@@ -21,6 +21,10 @@ class App:
         double_columns = df.columns[df.columns.duplicated()]
         double = []
 
+        if not df[columns].index.is_unique:
+            print("\033[1;31m" + "index needs to be unique")
+            return
+
         if not isinstance(delete, bool):
             print("\033[1;31m" + "delete is supposed to be a boolean")
             return
@@ -125,7 +129,8 @@ class App:
         # Removes all spaces at the start and end
         data.columns = data.columns.str.strip()
 
-        exceptions = {'ü': 'u', 'ä': 'a', 'ö': 'o', 'ë': 'e', 'ï': 'i', '%': '_procent_', '&': '_and_', ' ': '_', '-': '_'}
+        exceptions = {'ü': 'u', 'ä': 'a', 'ö': 'o', 'ë': 'e', 'ï': 'i', '%': '_procent_', '&': '_and_', ' ': '_',
+                      '-': '_'}
 
         for v, k in exceptions.items():
             data.columns = data.columns.str.replace(v, k)
